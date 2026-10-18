@@ -1,6 +1,8 @@
 {
   "name": "@freellmapi/monorepo",
   "private": true,
+  "type": "module",
+  "main": "index.js",
   "workspaces": [
     "shared",
     "server",
@@ -8,6 +10,7 @@
     "cli"
   ],
   "scripts": {
+    "start": "node index.js",
     "dev": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client\"",
     "dev:lan": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client -- --host\"",
     "test": "npm run test:bootstrap && npm run test:hooks && npm run test -w server && npm run test -w cli && npm run test -w client --if-present",
