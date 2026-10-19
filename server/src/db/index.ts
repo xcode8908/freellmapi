@@ -28,18 +28,21 @@ export function getDefaultDbPath(): string {
   return process.env.FREEAPI_DB_PATH?.trim() || DB_PATH;
 }
 
-/** Default factory: opens a better-sqlite3 connection at the given path. */
+/** Default factory: opens a better-sqlite3 connection at the given path, falling back to node:sqlite. */
 function betterSqliteFactory(resolvedPath: string): Db {
-  let BetterSqlite: new (path: string) => unknown;
   try {
-    BetterSqlite = runtimeRequire('better-sqlite3') as new (path: string) => unknown;
+    const BetterSqlite = runtimeRequire('better-sqlite3') as new (path: string) => unknown;
+    return new BetterSqlite(resolvedPath) as Db;
   } catch (cause) {
-    throw new Error(
-      'better-sqlite3 is not installed. Reinstall dependencies, or use Node.js 22.13+ on Android/Termux.',
-      { cause },
-    );
+    try {
+      return nodeSqliteFactory(resolvedPath);
+    } catch {
+      throw new Error(
+        'better-sqlite3 is not installed and node:sqlite is unavailable. Reinstall dependencies, or use Node.js 22.13+.',
+        { cause },
+      );
+    }
   }
-  return new BetterSqlite(resolvedPath) as Db;
 }
 
 export function defaultDbFactory(platform: NodeJS.Platform = process.platform): DbFactory {
