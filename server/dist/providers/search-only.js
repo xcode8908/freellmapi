@@ -1,0 +1,42 @@
+import { BaseProvider } from './base.js';
+import { proxyFetch } from '../lib/proxy.js';
+// Base for web search APIs (#1174). Their keys live in the normal api_keys
+// pool so they register, validate and show health like every other platform,
+// but they are consumed only by services/search.ts (POST /v1/search and the
+// agents' web_search tools). They never get chat rows, so the chat router
+// cannot pick them; a chat call that still reaches one is a routing mistake
+// and is refused with a 422 rather than mis-served.
+const VALIDATE_TIMEOUT_MS = 10_000;
+export class SearchOnlyProvider extends BaseProvider {
+    chatRefusal() {
+        return Object.assign(new Error(`${this.name} is a search provider: its key serves POST /v1/search, not chat completions`), { status: 422 });
+    }
+    async chatCompletion(_apiKey, _messages, _modelId, _options) {
+        throw this.chatRefusal();
+    }
+    // eslint-disable-next-line require-yield -- a rejected async iterator: the throw surfaces on first next()
+    async *streamChatCompletion(_apiKey, _messages, _modelId, _options) {
+        throw this.chatRefusal();
+    }
+    /** Shared verdict for a validation probe: 401/403 is a bad key, any other
+     *  4xx (usage cap, out of credits, malformed probe) still proves the key
+     *  authenticated, and 5xx/transport failures are inconclusive. */
+    async probe(url, init) {
+        let res;
+        try {
+            res = await proxyFetch(url, { ...init, signal: AbortSignal.timeout(VALIDATE_TIMEOUT_MS) }, this.platform, 'search', VALIDATE_TIMEOUT_MS);
+        }
+        catch (err) {
+            return { valid: false, error: `${this.name} key validation inconclusive: ${err instanceof Error ? err.message : String(err)}` };
+        }
+        if (res.ok)
+            return true;
+        if (res.status === 401 || res.status === 403) {
+            return { valid: false, error: `${this.name} key validation failed (HTTP ${res.status}): invalid API key` };
+        }
+        if (res.status >= 400 && res.status < 500)
+            return true;
+        return { valid: false, error: `${this.name} key validation inconclusive (HTTP ${res.status})` };
+    }
+}
+//# sourceMappingURL=search-only.js.map
