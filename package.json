@@ -1,47 +1,26 @@
 {
-  "name": "@freellmapi/monorepo",
+  "name": "freellmapi",
   "private": true,
   "type": "module",
   "main": "index.js",
-  "workspaces": [
-    "shared",
-    "server",
-    "client",
-    "cli"
-  ],
   "scripts": {
-    "start": "node index.js",
-    "dev": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client\"",
-    "dev:lan": "concurrently --kill-others-on-fail --names server,client \"npm run dev -w server\" \"npm run dev -w client -- --host\"",
-    "test": "npm run test:bootstrap && npm run test:hooks && npm run test -w server && npm run test -w cli && npm run test -w client --if-present",
-    "test:bootstrap": "node --test scripts/dev-bootstrap.test.mjs",
-    "test:hooks": "node --test .claude/hooks/contributing-check.test.mjs",
-    "build": "npm run build -w server && npm run build -w cli && npm run build -w client",
-    "lint": "npm run lint -w server && npm run lint -w cli",
-    "build:server": "npm run build -w server",
-    "test:migrations": "npm run test:migrations -w server",
-    "desktop:dev": "npm run build -w client && npm --prefix desktop run dev",
-    "desktop:dist": "npm run build -w client && npm --prefix desktop run dist",
-    "desktop:dist:mac:x64": "npm run build -w client && npm --prefix desktop run dist:mac:x64",
-    "desktop:dist:win": "npm run build -w client && npm --prefix desktop run dist:win",
-    "desktop:dist:linux": "npm run build -w client && npm --prefix desktop run dist:linux",
-    "db:migration:up": "npm run db:migration:up -w server",
-    "db:migration:down": "npm run db:migration:down -w server",
-    "db:migration:fresh": "npm run db:migration:fresh -w server",
-    "db:migration:status": "npm run db:migration:status -w server",
-    "db:migration:create": "npm run db:migration:create -w server"
+    "start": "node index.js"
   },
-  "devDependencies": {
-    "concurrently": "^9.1.2",
-    "jsdom": "^27.4.0"
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.2.0",
+    "sharp": "^0.35.3",
+    "socks-proxy-agent": "^10.0.0",
+    "undici": "^6.21.0",
+    "zod": "^3.24.4"
   },
   "engines": {
     "node": ">=20.18.0 <25.0.0",
     "npm": ">=10.0.0"
-  },
-  "allowScripts": {
-    "better-sqlite3@12.10.0": true,
-    "esbuild@0.28.2": true,
-    "msw@2.14.6": true
   }
 }
